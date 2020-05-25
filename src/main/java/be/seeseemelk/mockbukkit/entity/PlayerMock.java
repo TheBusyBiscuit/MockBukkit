@@ -1,7 +1,7 @@
 package be.seeseemelk.mockbukkit.entity;
 
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -64,6 +64,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.MainHand;
 import org.bukkit.inventory.Merchant;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.map.MapView;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
@@ -78,6 +80,7 @@ import org.jetbrains.annotations.Nullable;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.UnimplementedOperationException;
+import be.seeseemelk.mockbukkit.inventory.BookView;
 import be.seeseemelk.mockbukkit.inventory.EnderChestInventoryMock;
 import be.seeseemelk.mockbukkit.inventory.PlayerInventoryMock;
 import be.seeseemelk.mockbukkit.inventory.PlayerInventoryViewMock;
@@ -97,7 +100,9 @@ public class PlayerMock extends LivingEntityMock implements Player
 	private int expLevel = 0;
 	private boolean sneaking = false;
 	private boolean whitelisted = true;
+
 	private InventoryView inventoryView;
+	private BookView bookView;
 
 	private Location compassTarget;
 	private Location bedSpawnLocation;
@@ -144,7 +149,7 @@ public class PlayerMock extends LivingEntityMock implements Player
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + Objects.hash(attributes, exp, expLevel, expTotal, displayName, gamemode, getHealth(),
-				inventory, enderChest, inventoryView, getMaxHealth(), online, whitelisted, compassTarget,
+				inventory, enderChest, inventoryView, bookView, getMaxHealth(), online, whitelisted, compassTarget,
 				bedSpawnLocation, cursor);
 		return result;
 	}
@@ -164,7 +169,7 @@ public class PlayerMock extends LivingEntityMock implements Player
 				&& gamemode == other.gamemode
 				&& Double.doubleToLongBits(getHealth()) == Double.doubleToLongBits(other.getHealth())
 				&& Objects.equals(inventory, other.inventory) && Objects.equals(inventoryView, other.inventoryView)
-				&& Objects.equals(cursor, other.cursor)
+				&& Objects.equals(bookView, other.bookView) && Objects.equals(cursor, other.cursor)
 				&& Double.doubleToLongBits(getMaxHealth()) == Double.doubleToLongBits(other.getMaxHealth())
 				&& online == other.online && whitelisted == other.whitelisted && isDead() == other.isDead();
 	}
@@ -329,6 +334,7 @@ public class PlayerMock extends LivingEntityMock implements Player
 	public void openInventory(InventoryView inventory)
 	{
 		closeInventory();
+		closeBook();
 		inventoryView = inventory;
 	}
 
@@ -336,6 +342,7 @@ public class PlayerMock extends LivingEntityMock implements Player
 	public InventoryView openInventory(Inventory inventory)
 	{
 		closeInventory();
+		closeBook();
 		inventoryView = new PlayerInventoryViewMock(this, inventory);
 		return inventoryView;
 	}
@@ -2050,8 +2057,23 @@ public class PlayerMock extends LivingEntityMock implements Player
 	@Override
 	public void openBook(ItemStack book)
 	{
-		// TODO Auto-generated method stub
-		throw new UnimplementedOperationException();
+		closeInventory();
+		bookView = new BookView(this, book);
+	}
+
+	public void closeBook()
+	{
+		bookView = null;
+	}
+
+	/**
+	 * This method returns the currently opened {@link BookView} or null.
+	 * 
+	 * @return The current {@link BookView} or null
+	 */
+	public BookView getOpenBook()
+	{
+		return bookView;
 	}
 
 	@Override
